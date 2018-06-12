@@ -1,6 +1,12 @@
 # John Conway's game of life
 # all code by George A. Merrill (except where otherwise noted)
 #################################################################################################
+#version 0.0.3 June 12th 2018
+#improved speed by checking only 8 cells instead of checking every cell is a neighbour
+#################################################################################################
+#version 0.0.2  June 12th 2018
+#added graphics
+#################################################################################################
 #version 0.0.1  June 12th 2018
 #computes all cell states before updating any of them
 #################################################################################################
@@ -19,43 +25,74 @@
 #Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
 ###############################################################################################
 from graphics import *#graphics.py by John Zelle
+import time
+import random as rd
 def cellUpdate(cells):
-    tempCells = [[0 for x in range(10)] for y in range(10)]
+    tempCells = [[0 for x in range(100)] for y in range(100)]
     #first copy old cell states
-    for j in range(10):
-        for i in range(10):
+    for j in range(1,99):
+        for i in range(1,99):
             tempCells[i][j] = cells[i][j]
 
     #calculate  new cell states and store them in tempCells
-    for j in range(10):
-        for i in range(10):
+    for j in range(1,99):
+        for i in range(1,99):
             nbors = 0
-            for x in range(10):
-                for y in range(10):
-                    distN = (abs(i - x) + abs(j - y))
-                    if (distN == 1) or (distN == 2 and x != i and y != j):
-                        if cells[x][y] == 1:
-                            nbors += 1
+            if cells[i][j-1] == 1:
+                nbors += 1
+            if cells[i][j+1] == 1:
+                nbors += 1
+            if cells[i-1][j-1] == 1:
+                nbors += 1
+            if cells[i-1][j] == 1:
+                nbors += 1
+            if cells[i-1][j+1] == 1:
+                nbors += 1
+            if cells[i+1][j-1] == 1:
+                nbors += 1
+            if cells[i+1][j] == 1:
+                nbors += 1
+            if cells[i+1][j+1] == 1:
+                nbors += 1
             if cells[i][j] == 0 and nbors == 3:
                 tempCells[i][j] = 1
             elif (cells[i][j] == 1 and nbors > 4) or (cells[i][j] == 1 and nbors < 2):
                 tempCells[i][j] = 0
     #last update cells with new states
-    for j in range(10):
-        for i in range(10):
+    for j in range(1,99):
+        for i in range(1,99):
             cells[i][j] = tempCells[i][j]
     return
+def showGame(cells, win):
+    bg = Rectangle(Point(0,0),Point(500,500))
+    bg.setFill('white')
+    bg.draw(win)
+    win.update()
+    for j in range(1,99):
+        for i in range(1,99):
+
+            if (cells[j][i] == 1):
+                dc = Rectangle(Point(i*5,j*5), Point(i*5+5, j*5+5))
+                dc.setFill('black')
+                dc.draw(win)
+    win.update()
+
 def main():
-    cells = [[0 for x in range(10)] for y in range(10)]
-    cells[3][3] = 1
-    cells[3][4] = 1
-    cells[3][5] = 1
-    cells[0][2] = 0
+    cells = [[0 for x in range(100)] for y in range(100)]
+    for r in range(500):
+        x = rd.randint(1,99)
+        y = rd.randint(1,99)
+        cells[x][y] = 1
 
+    
+    win = GraphWin('game of life', 500, 500, autoflush=False)
 
-    for d in range(3):
-        print(repr(d) + '--------------------------')
-        for c in range(10):
-            print ('[' + repr(cells[c][0])+'], ['+ repr(cells[c][1])+'], ['+ repr(cells[c][2])+'], ['+ repr(cells[c][3])+'], ['+ repr(cells[c][4])+'], ['+ repr(cells[c][5])+'], ['+ repr(cells[c][6])+'], ['+ repr(cells[c][7])+'], ['+ repr(cells[c][8])+'], ['+ repr(cells[c][9])+']')
+    for d in range(100):
         cellUpdate(cells)
+        showGame(cells,win)
+        #time.sleep(0.1)
+    message = Text(Point(win.getWidth()/2,20), 'Click anywhere to quit.')
+    message.draw(win)
+    win.getMouse()
+    win.close()
 main()
