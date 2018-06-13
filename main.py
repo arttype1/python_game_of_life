@@ -1,7 +1,8 @@
 # John Conway's game of life
 # all code by George A. Merrill (except where otherwise noted)
 #################################################################################################
-#version 0.0.3 June 12th 2018
+#version 0.0.4 June 13th 2018
+#fixed overpopulation check
 #improved speed by checking only 8 cells instead of checking every cell is a neighbour
 #################################################################################################
 #version 0.0.2  June 12th 2018
@@ -56,7 +57,7 @@ def cellUpdate(cells):
                 nbors += 1
             if cells[i][j] == 0 and nbors == 3:
                 tempCells[i][j] = 1
-            elif (cells[i][j] == 1 and nbors > 4) or (cells[i][j] == 1 and nbors < 2):
+            elif (cells[i][j] == 1 and nbors >= 4) or (cells[i][j] == 1 and nbors < 2):
                 tempCells[i][j] = 0
     #last update cells with new states
     for j in range(1,99):
@@ -72,25 +73,25 @@ def showGame(cells, win):
         for i in range(1,99):
 
             if (cells[j][i] == 1):
-                dc = Rectangle(Point(i*5,j*5), Point(i*5+5, j*5+5))
+                dc = Rectangle(Point(i*5,j*5), Point(i*5+4, j*5+4))
                 dc.setFill('black')
                 dc.draw(win)
     win.update()
 
 def main():
     cells = [[0 for x in range(100)] for y in range(100)]
-    for r in range(500):
+    for r in range(550):
         x = rd.randint(1,99)
         y = rd.randint(1,99)
         cells[x][y] = 1
 
-    
+
     win = GraphWin('game of life', 500, 500, autoflush=False)
 
-    for d in range(100):
+    for d in range(200):
         cellUpdate(cells)
         showGame(cells,win)
-        #time.sleep(0.1)
+    #time.sleep(1)
     message = Text(Point(win.getWidth()/2,20), 'Click anywhere to quit.')
     message.draw(win)
     win.getMouse()
