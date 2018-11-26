@@ -18,8 +18,10 @@ Any dead cell with exactly three live neighbors becomes a live cell, as if by re
 version 0.0.01 start of OpenGl
 version 0.0.02 cell updates and display
 version 0.0.03 start of menu
+version 0.0.04 start of gui
+version 0.0.05 boarder wrapping
 """
-from Canvas import Canvas
+from Cangui import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -31,52 +33,93 @@ screen_height = 1025
 cvs = Canvas(screen_width, screen_height, 'Game of Life')
 cells = [[0 for x in range(200)] for y in range(200)]
 count = 0
+game_mode = 'pause'
+wrap = True
+button_pause = Button((0.5, 0.5, 0.5), (0.7, 0.7, 0.7), 900, 500, 990, 530)
+button_pause.message = 'START'
 
-def draw_message(color, coord, message):
-    r,g,b = color
-    x,y = coord
-    glColor3f(r, g, b)
-    glRasterPos2d(x, y)
-    for c in message:
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(c))
+
+def cell_update_wrap():
+    global cells, game_mode, count
+    if game_mode == 'play':
+        count += 1
+        temp_cells = [[0 for x in range(200)] for y in range(200)]
+        # first copy old cell states
+        for j in range(0, 200):
+            for i in range(0, 200):
+                temp_cells[i][j] = cells[i][j]
+        # calculate  new cell states and store them in temp_cells
+        for j in range(0, 200):
+            for i in range(0, 200):
+                nbors = 0
+                if (j>0 and cells[i][j-1] == 1) or (j==0 and cells[i][199] == 1):
+                    nbors += 1
+                if(j<199 and cells[i][j+1] == 1) or (j==199 and cells[i][0] == 1):
+                    nbors += 1
+                if(i>0 and j>0 and cells[i-1][j-1] == 1) or (i==0 and j==0 and cells[199][199] == 1)\
+                        or (i>0 and j==0 and cells[i-1][199] == 1) or (i==0 and j>0 and cells[199][j-1] == 1):
+                    nbors += 1
+                if(i>0 and cells[i-1][j] == 1) or (i==0 and cells[199][j] == 1):
+                    nbors += 1
+                if(i>0 and j<199 and cells[i-1][j+1] == 1) or (i==0 and j==199 and cells[199][0] == 1)\
+                        or (i>0 and j==199 and cells[i-1][0] == 1) or (i==0 and j<199 and cells[199][j+1] == 1):
+                    nbors += 1
+                if(i<199 and j>0 and cells[i+1][j-1] == 1) or (i==199 and j==0 and cells[0][199] == 1)\
+                        or (i<199 and j==0 and cells[i+1][199] == 1) or (i==199 and j>0 and cells[0][j-1] == 1):
+                    nbors += 1
+                if(i<199 and cells[i+1][j] == 1) or (i==199 and cells[0][j] == 1):
+                    nbors += 1
+                if(i<199 and j<199 and cells[i+1][j+1] == 1) or (i==199 and j==199 and cells[0][0] == 1)\
+                        or (i<199 and j==199 and cells[i+1][0] == 1) or (i==199 and j<199 and cells[0][j+1] == 1):
+                    nbors += 1
+                if cells[i][j] == 0 and nbors == 3:
+                    temp_cells[i][j] = 1
+                elif cells[i][j] == 1 and nbors >= 4 or nbors < 2:
+                    temp_cells[i][j] = 0
+        # last update cells with new states
+        for j in range(0,200):
+            for i in range(0,200):
+                cells[i][j] = temp_cells[i][j]
+    glutPostRedisplay()
 
 
 def cell_update():
-    global cells
-    temp_cells = [[0 for x in range(200)] for y in range(200)]
-    # first copy old cell states
-    for j in range(1,199):
-        for i in range(1,199):
-            temp_cells[i][j] = cells[i][j]
-
-    # calculate  new cell states and store them in temp_cells
-    for j in range(1,199):
-        for i in range(1,199):
-            nbors = 0
-            if cells[i][j-1] == 1:
-                nbors += 1
-            if cells[i][j+1] == 1:
-                nbors += 1
-            if cells[i-1][j-1] == 1:
-                nbors += 1
-            if cells[i-1][j] == 1:
-                nbors += 1
-            if cells[i-1][j+1] == 1:
-                nbors += 1
-            if cells[i+1][j-1] == 1:
-                nbors += 1
-            if cells[i+1][j] == 1:
-                nbors += 1
-            if cells[i+1][j+1] == 1:
-                nbors += 1
-            if cells[i][j] == 0 and nbors == 3:
-                temp_cells[i][j] = 1
-            elif cells[i][j] == 1 and nbors >= 4 or nbors < 2:
-                temp_cells[i][j] = 0
-    # last update cells with new states
-    for j in range(1,199):
-        for i in range(1,199):
-            cells[i][j] = temp_cells[i][j]
+    global cells, game_mode, count, wrap
+    if game_mode == 'play':
+        count += 1
+        temp_cells = [[0 for x in range(200)] for y in range(200)]
+        # first copy old cell states
+        for j in range(1,199):
+            for i in range(1,199):
+                temp_cells[i][j] = cells[i][j]
+        # calculate  new cell states and store them in temp_cells
+        for j in range(1,199):
+            for i in range(1,199):
+                nbors = 0
+                if cells[i][j-1] == 1:
+                    nbors += 1
+                if cells[i][j+1] == 1:
+                    nbors += 1
+                if cells[i-1][j-1] == 1:
+                    nbors += 1
+                if cells[i-1][j] == 1:
+                    nbors += 1
+                if cells[i-1][j+1] == 1:
+                    nbors += 1
+                if cells[i+1][j-1] == 1:
+                    nbors += 1
+                if cells[i+1][j] == 1:
+                    nbors += 1
+                if cells[i+1][j+1] == 1:
+                    nbors += 1
+                if cells[i][j] == 0 and nbors == 3:
+                    temp_cells[i][j] = 1
+                elif cells[i][j] == 1 and nbors >= 4 or nbors < 2:
+                    temp_cells[i][j] = 0
+        # last update cells with new states
+        for j in range(1,199):
+            for i in range(1,199):
+                cells[i][j] = temp_cells[i][j]
     glutPostRedisplay()
 
 
@@ -95,10 +138,29 @@ def my_pass(x, y):
     glutPostRedisplay()
 
 
+def my_mouse(button, state, x, neg_y):
+    y = screen_height - neg_y
+    global game_mode
+    if game_mode == 'start':
+        pass
+    elif game_mode == 'play':
+        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN and \
+                button_pause.is_inside(x, y):
+            game_mode = 'pause'
+    elif game_mode == 'pause':
+        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN and \
+                button_pause.is_inside(x, y):
+            game_mode = 'play'
+
+
 def my_display():
-    global cvs, cells, count
-    global red_dot
-    glutUseLayer(GLUT_NORMAL)
+    global cvs, cells, count, wrap
+    global game_mode
+    global button_pause
+    if game_mode == 'pause':
+        button_pause.message = ' PLAY'
+    elif game_mode == 'play':
+        button_pause.message = 'PAUSE'
     cvs.set_bc(0, 0, 0)
     cvs.clear_screen()
     glPointSize(4)
@@ -113,25 +175,27 @@ def my_display():
             if cells[j][i] == 1:
                 glVertex2i(j*4, i*4)
     glEnd()
-    draw_message((.8, .3, .8),  (500, 900),f'current GENERATION: {count}')
+    draw_message('gen_count',  (500, 900), f'current GENERATION: {count}')
+    button_pause.draw()
     draw_menu_bar()
     cvs.swap()
-    count += 1
-    if count > 2000:
-        quit()
-    cell_update()
+    if wrap:
+        cell_update_wrap()
+    else:
+        cell_update()
 
 
 
 x=100
 y=100
-for r in range(500):
+for r in range(420):
     dx = randint(0,1)
     dy = randint(0,1)
-    x,y = x + dx * 2 - 1, y + dy * 2 - 1
-    cells[x][y] = 1
+    t = randint(0,1)
+    x,y = x + t * (dx * 2 - 1), y + (1- t) * (dy * 2 - 1)
+    cells[x][y] = (1 - cells[x][y])
 
 glutDisplayFunc(my_display)
-glutPassiveMotionFunc(my_pass)
+glutMouseFunc(my_mouse)
 glutMainLoop()
 
